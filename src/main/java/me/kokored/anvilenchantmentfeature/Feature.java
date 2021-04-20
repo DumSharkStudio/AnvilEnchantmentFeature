@@ -57,6 +57,10 @@ public class Feature implements Listener {
             return;
         if (firstItem.getType() == Material.AIR || secondItem.getType() == Material.AIR)
             return;
+        if (firstItem.getType().equals(Material.ENCHANTED_BOOK))
+            return;;
+        if (firstItem.getType() == Material.ENCHANTED_BOOK)
+            return;
         if (!(secondItem.getType().equals(Material.ENCHANTED_BOOK)))
             return;;
         if (!(secondItem.getType() == Material.ENCHANTED_BOOK))
@@ -114,7 +118,7 @@ public class Feature implements Listener {
     public void onInvClose(InventoryCloseEvent event) {
         InventoryType type = event.getInventory().getType();
         if (type == InventoryType.ANVIL) {
-            if (logMap.get((Player) event.getView().getPlayer()) == true) {
+            if (logMap.containsKey(event.getView().getPlayer())) {
                 logMap.remove((Player) event.getView().getPlayer());
             }
         }
