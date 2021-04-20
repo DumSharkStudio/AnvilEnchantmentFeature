@@ -1,6 +1,10 @@
-package me.kokored.anvilenchantmentfeature.feature;
+/*
+ * Copyright (c) 2021. KokoMinecraftPlugins(http://kokominecraftplugins.github.io/)Koko_red7214 版權所有
+ * 19/4/2021授權 快樂貓伺服器(The_chosen _cat#2606)使用
+ */
 
-import me.kokored.anvilenchantmentfeature.AnvilEnchantmentFeature;
+package me.kokored.anvilenchantmentfeature;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,19 +17,34 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnvilFeature implements Listener {
+public class Feature implements Listener {
 
     Plugin plugin = AnvilEnchantmentFeature.getPlugin(AnvilEnchantmentFeature.class);
     Map<Player, Boolean> logMap = new HashMap<>();
 
-    public AnvilFeature() {
+    public Feature() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
+
+    private Map<Enchantment, Integer> getCanEnchant(ItemStack book, ItemStack target) {
+        Map<Enchantment, Integer> map = new HashMap<>();
+
+        EnchantmentStorageMeta book_meta = (EnchantmentStorageMeta) book.getItemMeta();
+
+        for (Map.Entry<Enchantment, Integer> entry : book_meta.getStoredEnchants().entrySet()) {
+            if (entry.getKey().canEnchantItem(target)) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return map;
     }
 
     @EventHandler
@@ -46,9 +65,8 @@ public class AnvilFeature implements Listener {
             return;
 
         ItemStack item = new ItemStack(firstItem.getType());
-        //ItemMeta meta1 = item.getItemMeta();
         ItemMeta meta = firstItem.getItemMeta();
-        for (Map.Entry<Enchantment, Integer> entry : EnchantmentFeature.getCanEnchant(secondItem, firstItem).entrySet()) {
+        for (Map.Entry<Enchantment, Integer> entry : this.getCanEnchant(secondItem, firstItem).entrySet()) {
             meta.addEnchant(entry.getKey(), entry.getValue(), true);
         }
         item.setItemMeta(meta);
