@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2021. KokoMinecraftPlugins(http://kokominecraftplugins.github.io/)Koko_red7214 版權所有
- * 19/4/2021授權 快樂貓伺服器(The_chosen _cat#2606)使用
- */
-
 package me.kokored.anvilenchantmentfeature;
 
 import org.bukkit.Bukkit;
@@ -20,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
+
+import net.kyori.adventure.text.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,18 +48,12 @@ public class Feature implements Listener {
     public void onPrepareAnvilEvent(PrepareAnvilEvent event) {
         ItemStack firstItem = event.getInventory().getItem(0);
         ItemStack secondItem = event.getInventory().getItem(1);
-        if (firstItem == null)
-            return;
-        if (secondItem == null)
+        if (firstItem == null || secondItem == null)
             return;
         if (firstItem.getType() == Material.AIR || secondItem.getType() == Material.AIR)
             return;
-        if (firstItem.getType().equals(Material.ENCHANTED_BOOK))
-            return;;
         if (firstItem.getType() == Material.ENCHANTED_BOOK)
             return;
-        if (!(secondItem.getType().equals(Material.ENCHANTED_BOOK)))
-            return;;
         if (!(secondItem.getType() == Material.ENCHANTED_BOOK))
             return;
         if (firstItem.getAmount() != 1)
@@ -71,18 +62,30 @@ public class Feature implements Listener {
         ItemStack item = new ItemStack(firstItem.getType());
         ItemMeta meta = firstItem.getItemMeta();
         for (Map.Entry<Enchantment, Integer> entry : this.getCanEnchant(secondItem, firstItem).entrySet()) {
-            meta.addEnchant(entry.getKey(), entry.getValue(), true);
+            Enchantment enchant = entry.getKey();
+
+            int resultLvl = meta.getEnchantLevel(enchant) + entry.getValue();
+            if (resultLvl > plugin.getConfig().getInt("enchants." + enchant.getKey().asString() + ".maxlvl")) {
+                resultLvl = plugin.getConfig().getInt("enchants." + enchant.getKey().asString() + ".maxlvl");
+            }
+
+            plugin.getLogger().info(resultLvl + "");
+
+            if (meta.hasConflictingEnchant(enchant)) {
+                meta.removeEnchant(enchant);
+                meta.addEnchant(enchant, resultLvl, true);
+            } else {
+                meta.addEnchant(enchant, resultLvl, true);
+            }
         }
         item.setItemMeta(meta);
 
-
-
         if (!item.equals(firstItem) || !item.getItemMeta().equals(firstItem.getItemMeta())) {
             event.setResult(item);
-        }else {
+        } else {
             ItemStack cannot = new ItemStack(Material.BARRIER);
             ItemMeta cannotMeta = cannot.getItemMeta();
-            cannotMeta.setDisplayName(ChatColor.RED + "你不能將這個附魔附在這個物品上");
+            cannotMeta.displayName(Component.text(ChatColor.RED + "你不能將這個附魔附在這個物品上"));
             cannot.setItemMeta(cannotMeta);
 
             event.setResult(cannot);
@@ -95,7 +98,7 @@ public class Feature implements Listener {
     public void onGetResult(InventoryClickEvent event) {
         ItemStack cannot = new ItemStack(Material.BARRIER);
         ItemMeta cannotMeta = cannot.getItemMeta();
-        cannotMeta.setDisplayName(ChatColor.RED + "你不能將這個附魔附在這個物品上");
+        cannotMeta.displayName(Component.text(ChatColor.RED + "你不能將這個附魔附在這個物品上"));
         cannot.setItemMeta(cannotMeta);
 
         InventoryType type = event.getInventory().getType();
@@ -108,7 +111,7 @@ public class Feature implements Listener {
                 if (logMap.containsKey(event.getWhoClicked())) {
                     event.setCancelled(true);
                 }
-            }else if (logMap.containsKey((Player) event.getView().getPlayer())) {
+            } else if (logMap.containsKey((Player) event.getView().getPlayer())) {
                 logMap.remove((Player) event.getView().getPlayer());
             }
         }
